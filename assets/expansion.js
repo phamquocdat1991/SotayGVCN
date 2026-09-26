@@ -1354,58 +1354,5 @@
     `;
   };
 
-  // --- 4. INJECT TOP ACTION BUTTONS ---
-  function injectTopQuickActions() {
-    if (document.getElementById('expansion-quick-actions-bar')) return;
-    const header = document.querySelector('header, .ref-header, #main-header, nav[data-app-nav]');
-    const container = document.createElement('div');
-    container.id = 'expansion-quick-actions-bar';
-    container.className = 'print:hidden flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-1 px-2 text-xs';
-
-    container.innerHTML = `
-      <button type="button" onclick="openAiModal()" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-sm transition whitespace-nowrap" title="Trợ lý AI GVCN">
-        <i class="ph-bold ph-sparkle text-amber-300"></i> Trợ lý AI
-      </button>
-      <button type="button" onclick="openSeatingModal()" class="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold flex items-center gap-1.5 shadow-sm transition whitespace-nowrap" title="Sơ đồ lớp học">
-        <i class="ph-bold ph-chalkboard-simple"></i> Sơ đồ lớp
-      </button>
-      <button type="button" onclick="openMeetingMinutesModal()" class="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5 shadow-sm transition whitespace-nowrap" title="Biên bản sinh hoạt lớp">
-        <i class="ph-bold ph-file-text"></i> Biên bản tuần
-      </button>
-      <button type="button" onclick="openTheaterModal()" class="px-2.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold flex items-center gap-1.5 shadow-sm transition whitespace-nowrap" title="Chế độ Trình chiếu TV">
-        <i class="ph-bold ph-television"></i> Trình chiếu
-      </button>
-      <button type="button" onclick="openVnEduModal()" class="px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold flex items-center gap-1.5 shadow-sm transition whitespace-nowrap" title="VnEdu & SMAS">
-        <i class="ph-bold ph-file-xls"></i> VnEdu/SMAS
-      </button>
-      <button type="button" onclick="openQrCardsModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white font-bold flex items-center gap-1.5 shadow-sm transition whitespace-nowrap" title="Phiếu Mã QR Phụ huynh">
-        <i class="ph-bold ph-qr-code"></i> Mã QR PH
-      </button>
-      <button type="button" id="pwa-install-app-btn" onclick="installPwaApp()" style="display:none;" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center gap-1.5 shadow-sm transition whitespace-nowrap" title="Cài đặt App vào điện thoại">
-        <i class="ph-bold ph-download-simple"></i> Cài App
-      </button>
-    `;
-
-    // Try finding insertion target
-    const target = document.querySelector('.ref-quick-actions, .classroom-quick-actions, #nav-sub-utilities') || document.body;
-    if (target !== document.body) {
-      target.appendChild(container);
-    } else {
-      container.className += ' fixed top-2 right-24 z-40 bg-white/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-200 shadow-md';
-      document.body.appendChild(container);
-    }
-  }
-
-  // Hook into render cycle
-  const prevRenderLayout = window.renderLayout;
-  if (typeof prevRenderLayout === 'function') {
-    window.renderLayout = function () {
-      const res = prevRenderLayout.apply(this, arguments);
-      setTimeout(injectTopQuickActions, 50);
-      return res;
-    };
-  }
-
-  setTimeout(injectTopQuickActions, 300);
   console.log('[GVCN PRO Expansion] Đã khởi tạo thành công toàn diện 3 giai đoạn nâng cấp!');
 })();
