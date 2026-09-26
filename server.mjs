@@ -2,6 +2,12 @@ import http from 'node:http';
 import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
 import { extname, join, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  generateStudentComments,
+  generateZaloMessage,
+  generateMeetingPlan,
+  generateEarlyWarning
+} from './server_ai.mjs';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const staticRoot = join(root, 'dist');
@@ -21,7 +27,8 @@ const mime = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
-  '.ico': 'image/x-icon'
+  '.ico': 'image/x-icon',
+  '.webmanifest': 'application/manifest+json; charset=utf-8'
 };
 
 // In-memory master state cache for ultra-fast sync
@@ -243,6 +250,67 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // --- API ROUTES: GOOGLE GEMINI AI ASSISTANT (GVCN AI EDTECH) ---
+  if (req.method === 'POST' && url === '/api/ai/comments') {
+    try {
+      const payload = await parseJsonBody(req);
+      const result = await generateStudentComments(payload);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify(result));
+    } catch (err) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+    return;
+  }
+
+  if (req.method === 'POST' && url === '/api/ai/zalo') {
+    try {
+      const payload = await parseJsonBody(req);
+      const result = await generateZaloMessage(payload);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify(result));
+    } catch (err) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+    return;
+  }
+
+  if (req.method === 'POST' && url === '/api/ai/meeting') {
+    try {
+      const payload = await parseJsonBody(req);
+      const result = await generateMeetingPlan(payload);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify(result));
+    } catch (err) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+    return;
+  }
+
+  if (req.method === 'POST' && url === '/api/ai/early-warning') {
+    try {
+      const payload = await parseJsonBody(req);
+      const result = await generateEarlyWarning(payload);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify(result));
+    } catch (err) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+    return;
+  }
+
   // --- API ROUTE: SAVE / SYNC STATE ---
   if (req.method === 'POST' && (url === '/api/sync/save' || url === '/api/sync')) {
     try {
@@ -256,6 +324,18 @@ const server = http.createServer(async (req, res) => {
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: false, error: 'Invalid state payload' }));
         return;
+      }
+
+      // Security: Passcode verification if configured
+      const configuredPasscode = masterState?.settings?.adminPasscode;
+      if (configuredPasscode) {
+        const clientPass = req.headers['x-admin-passcode'] || payload.passcode;
+        if (clientPass !== configuredPasscode) {
+          res.statusCode = 403;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, error: 'Mã bảo vệ lớp học không chính xác' }));
+          return;
+        }
       }
 
       masterVersion++;
